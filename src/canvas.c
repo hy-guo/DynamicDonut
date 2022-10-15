@@ -17,9 +17,13 @@ static void get_canvas_size();
 unsigned int canvas_height;
 unsigned int canvas_width;
 
-void canvas_print(char buf[])
+int canvas_print(char buf[])
 {
     unsigned int x, y;
+
+    if (buf == NULL)
+        return -1;
+
     printf("\x1b[H");
     for (y = 0; y < canvas_height; ++y)
     {
@@ -37,6 +41,8 @@ void canvas_print(char buf[])
         }
         printf("\n");
     }
+
+    return 0;
 }
 
 char *canvas_prepare_buffer()

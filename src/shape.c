@@ -38,7 +38,7 @@ void shape_release_donut(Donut *donut)
     free(donut);
 }
 
-void shape_prepare_next_donut(Donut *donut, char buf[])
+int shape_prepare_next_donut(Donut *donut, char buf[])
 {
     double psi = 0;
     double theta = 0;
@@ -53,6 +53,9 @@ void shape_prepare_next_donut(Donut *donut, char buf[])
     double *z_buf;
     int     idx;
 
+    if (donut == NULL || buf == NULL)
+        return -1;
+
     z_buf = (double *)malloc((canvas_width * canvas_height) * sizeof(double));
     for (idx = 0; idx < canvas_width * canvas_height; ++idx)
         z_buf[idx] = -DBL_MAX;
@@ -65,18 +68,17 @@ void shape_prepare_next_donut(Donut *donut, char buf[])
     sin_a = sin(donut->a_radian);
     cos_a = cos(donut->a_radian);
 
-    while (psi <= 2 * M_PI)
+    for (psi = 0; psi < 2 * M_PI; psi += RESO)
     {
-        psi += RESO;
         sin_p = sin(psi);
         cos_p = cos(psi);
-        while (theta <= 2 * M_PI)
+
+        for (theta = 0; theta < 2 * M_PI; theta += RESO)
         {
             double       x, y, z;
             unsigned int xp, yp;
             double       z_apo;
 
-            theta += RESO;
             sin_t = sin(theta);
             cos_t = cos(theta);
 
@@ -90,6 +92,9 @@ void shape_prepare_next_donut(Donut *donut, char buf[])
 
             xp = (x * z_apo + wid_offset);
             yp = (y * z_apo + hei_offset);
+
+            if (xp >= canvas_width || yp >= canvas_height)
+                continue;
 
             if (z > z_buf[yp * canvas_width + xp])
             {
@@ -108,8 +113,9 @@ void shape_prepare_next_donut(Donut *donut, char buf[])
                 buf[yp * canvas_width + xp] = LUMINANCE_CHARS[lumi_idx];
             }
         }
-        theta = 0;
     }
+
+    return 0;
 }
 
 static double dot_product_3d(double a[3], double b[3])
