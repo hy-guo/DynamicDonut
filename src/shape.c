@@ -17,10 +17,41 @@ static double RESO = 0.05;
 static char LUMINANCE_CHARS[12] =
     {'.', ',', '-', '~', ':', ';', '=', '!', '*', '#', '$', '@'};
 
+int shape_prepare_next_shape(Shape *shape, char buf[])
+{
+    switch (shape->type)
+    {
+        case S_Donut:
+            return shape_prepare_next_donut((Donut *)shape, buf);
+            break;
+        case S_Heart:
+            return shape_prepare_next_heart((Heart *)shape, buf);
+            break;
+        default:
+            return -1;
+    }
+}
+
+void shape_release_shape(Shape *shape)
+{
+    switch (shape->type)
+    {
+        case S_Donut:
+            shape_release_donut((Donut *)shape);
+            break;
+        case S_Heart:
+            shape_release_heart((Heart *)shape);
+            break;
+        default:
+            return;
+    }
+}
+
 Donut *shape_new_donut(double r1, double r2, double viewer_distance,
                        double object_distance)
 {
     Donut *donut = (Donut *)malloc(sizeof(Donut));
+    donut->type = S_Donut;
     donut->r1 = r1;
     donut->r2 = r2;
     donut->viewer_distance = viewer_distance;
@@ -33,9 +64,26 @@ Donut *shape_new_donut(double r1, double r2, double viewer_distance,
     return donut;
 }
 
+Heart *shape_new_heart(double a, double b, double c)
+{
+    Heart *heart = (Heart *)malloc(sizeof(Heart));
+    heart->type = S_Heart;
+    heart->a = a;
+    heart->b = b;
+    heart->c = c;
+    heart->multiplier = 1;
+    heart->direction = 1;
+    return heart;
+}
+
 void shape_release_donut(Donut *donut)
 {
     free(donut);
+}
+
+void shape_release_heart(Heart *heart)
+{
+    free(heart);
 }
 
 int shape_prepare_next_donut(Donut *donut, char buf[])
@@ -112,6 +160,62 @@ int shape_prepare_next_donut(Donut *donut, char buf[])
 
                 buf[yp * canvas_width + xp] = LUMINANCE_CHARS[lumi_idx];
             }
+        }
+    }
+
+    return 0;
+}
+
+int shape_prepare_next_heart(Heart *heart, char buf[])
+{
+    double theta = 0;
+    double wid_offset = canvas_width / 2;
+    double hei_offset = canvas_height / 2;
+
+    if (heart == NULL || buf == NULL)
+        return -1;
+
+    if (heart->direction == 1)
+    {
+        heart->multiplier = (heart->multiplier + 1.25 * heart->multiplier * RESO);
+        if (heart->multiplier > 1.5)
+            heart->direction = -1;
+    }
+    else
+    {
+        heart->multiplier = (heart->multiplier - 1.75 * heart->multiplier * RESO);
+        if (heart->multiplier < 1)
+            heart->direction = 1;
+    }
+
+    for (theta = 0; theta < 2 * M_PI; theta += RESO)
+    {
+        double       r, r_max;
+        double       sin_t, cos_t;
+        double       x, y;
+        unsigned int xp, yp;
+
+        sin_t = sin(theta);
+        cos_t = cos(theta);
+
+        r_max = (heart->multiplier) *
+                ((heart->a) / sqrt((heart->b) + (heart->c) * sin_t * fabs(cos_t)));
+
+        for (r = 0; r <= r_max; r += RESO)
+        {
+            unsigned int lumi_idx;
+
+            x = r * cos_t;
+            y = r * sin_t;
+
+            xp = (x + wid_offset);
+            yp = (y + hei_offset);
+
+            if (xp >= canvas_width || yp >= canvas_height)
+                continue;
+
+            lumi_idx = (r / r_max) * 12;
+            buf[yp * canvas_width + xp] = LUMINANCE_CHARS[lumi_idx];
         }
     }
 

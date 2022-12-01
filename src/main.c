@@ -20,20 +20,24 @@ static void set_sigint_act();
 int main(int argc, char *argv[])
 {
     int    fps = 30;
-    Donut *donut;
+    Shape *shape;
 
     printf("\x1b[2J");
     printf("\x1b[?25l");
 
     set_sigint_act();
 
-    donut = shape_new_donut(10, 5, 15, 25);
+    shape = (Shape *)shape_new_donut(10, 5, 15, 25);
+    /*
+     * For heart shape
+     * shape = (Shape *)shape_new_heart(30, 15, 16);
+     */
 
     while (1)
     {
         char *buf = canvas_prepare_buffer();
 
-        if (shape_prepare_next_donut(donut, buf) == 0)
+        if (shape_prepare_next_shape(shape, buf) == 0)
             canvas_print(buf);
         else
             break;
@@ -43,7 +47,7 @@ int main(int argc, char *argv[])
         usleep(1000000 / fps);
     }
 
-    shape_release_donut(donut);
+    shape_release_shape(shape);
     printf("\x1b[?25h");
 
     return 0;
