@@ -177,13 +177,13 @@ int shape_prepare_next_heart(Heart *heart, char buf[])
 
     if (heart->direction == 1)
     {
-        heart->multiplier = (heart->multiplier + 1.25 * heart->multiplier * RESO);
+        heart->multiplier = (heart->multiplier + 0.5 * pow(heart->multiplier, 5) * RESO);
         if (heart->multiplier > 1.5)
             heart->direction = -1;
     }
     else
     {
-        heart->multiplier = (heart->multiplier - 1.75 * heart->multiplier * RESO);
+        heart->multiplier = (heart->multiplier - 0.75 * pow(heart->multiplier, 5) * RESO);
         if (heart->multiplier < 1)
             heart->direction = 1;
     }

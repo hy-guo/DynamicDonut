@@ -8,6 +8,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <unistd.h>
 #include <signal.h>
 
@@ -22,16 +23,31 @@ int main(int argc, char *argv[])
     int    fps = 30;
     Shape *shape;
 
+    if (argc <= 1)
+    {
+        shape = (Shape *)shape_new_donut(10, 5, 15, 25);
+    }
+    else
+    {
+        if (strcmp(argv[1], "donut") == 0)
+        {
+            shape = (Shape *)shape_new_donut(10, 5, 15, 25);
+        }
+        else if (strcmp(argv[1], "heart") == 0)
+        {
+            shape = (Shape *)shape_new_heart(30, 15, 16);
+        }
+        else
+        {
+            printf("The input shape does not exist!\n");
+            return 0;
+        }
+    }
+
     printf("\x1b[2J");
     printf("\x1b[?25l");
 
     set_sigint_act();
-
-    shape = (Shape *)shape_new_donut(10, 5, 15, 25);
-    /*
-     * For heart shape
-     * shape = (Shape *)shape_new_heart(30, 15, 16);
-     */
 
     while (1)
     {
